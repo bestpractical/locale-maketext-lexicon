@@ -2,8 +2,8 @@ NAME
     Locale::Maketext::Lexicon - Use other catalog formats in Maketext
 
 VERSION
-    This document describes version 0.70 of Locale::Maketext::Lexicon,
-    released October 4, 2008.
+    This document describes version 0.71 of Locale::Maketext::Lexicon,
+    released October 5, 2008.
 
 SYNOPSIS
     As part of a localization class, automatically glob for available

@@ -2,6 +2,9 @@ package Locale::Maketext::Extract::Plugin::TextTemplate;
 
 use strict;
 use base qw(Locale::Maketext::Extract::Plugin::Base);
+use vars qw($VERSION);
+
+$VERSION = '0.30';
 
 =head1 NAME
 

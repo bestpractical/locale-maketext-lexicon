@@ -1,3 +1,8 @@
+[Changes for 0.71 - 2008-10-05]
+
+* Bump version number of Locale::Maketext::Extract::Plugin::TextTemplate
+  to 0.30 so PAUSE can index it correctly.
+
 [Changes for 0.70 - 2008-10-04]
 
 Contributed by: Clinton Gormley (DRTECH)
