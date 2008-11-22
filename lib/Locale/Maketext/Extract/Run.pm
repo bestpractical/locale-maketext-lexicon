@@ -1,5 +1,5 @@
 package Locale::Maketext::Extract::Run;
-$Locale::Maketext::Lexicon::Extract::Run::VERSION = '0.30';
+$Locale::Maketext::Lexicon::Extract::Run::VERSION = '0.32';
 
 use strict;
 use vars qw( @ISA @EXPORT_OK );
