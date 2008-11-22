@@ -4,7 +4,7 @@ package Test::Builder;
 use 5.006;
 use strict;
 
-our $VERSION = '0.78';
+our $VERSION = '0.80';
 $VERSION = eval { $VERSION }; # make the alpha version come out as a number
 
 # Make Test::Builder thread-safe for ithreads.
@@ -937,13 +937,13 @@ sub _open_testhandles {
 
 
 sub _copy_io_layers {
-    my($self, $src, $dest) = @_;
+    my($self, $src, $dst) = @_;
     
     $self->_try(sub {
         require PerlIO;
-        my @layers = PerlIO::get_layers($src);
-        
-        binmode $dest, join " ", map ":$_", @layers if @layers;
+        my @src_layers = PerlIO::get_layers($src);
+
+        binmode $dst, join " ", map ":$_", @src_layers if @src_layers;
     });
 }
 

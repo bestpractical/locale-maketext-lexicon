@@ -1,7 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use Locale::Maketext::Extract::Run 'xgettext';
-xgettext(@ARGV);
+
+if (@ARGV) {
+    xgettext(@ARGV);
+}
+else {
+    system(qq[perldoc "$0"]);
+}
 
 =head1 NAME
 
@@ -84,11 +90,105 @@ before each entry that has C<%> variables.
 
 =back
 
+=head2 Plugins:
+
+By default, all builtin parser plugins are enabled for all file types, with
+warnings turned off.
+
+If any plugin is specified on the command line, then warnings are turned
+on by default - you can turn them off with C<-now>
+
+=over 4
+
+=item B<-P>|B<--plugin> pluginname
+
+    Use the specified plugin for the default file types recognised by that
+    plugin.
+
+=item B<-P>|B<--plugin> 'pluginname=*'
+
+    Use the specified plugin for all file types.
+
+=item B<-P>|B<--plugin> pluginname=ext,ext2
+
+    Use the specified plugin for any files ending in C<.ext> or C<.ext2>
+
+=item B<-P>|B<--plugin> My::Module::Name='*'
+
+    Use your custom plugin module for all file types
+
+=back
+
+Multiple plugins can be specified on the command line
+
+=head2 Warnings:
+
+If a parser plugin encounters a syntax error while parsing, it will abort
+parsing and hand over to the next parser plugin.  If warnings are turned
+on then the error will be echoed to STDERR.
+
+Off by default, unless any plugin has been specified on the command line.
+
+=over 4
+
+=item B<-w>|B<--warnings>
+
+=item B<-now>|B<--nowarnings>
+
+=back
+
+=head2 Verbose:
+
+If you would like to see which files have been processed, which plugins were
+used, and which strings were extracted, then enable C<verbose>. If no
+acceptable plugin was found, or no strings were extracted, then the file
+is not listed:
+
+=over 4
+
+=item B<-v>|B<--verbose>
+
+Lists processed files.
+
+=item B<-v -v>|B<--verbose --verbose> :
+
+Lists processed files and which plugins managed to extract strings.
+
+=item B<-v -v>|B<--verbose --verbose> :
+
+Lists processed files, which plugins managed to extract strings, and the
+extracted strings, the line where they were found, and any variables.
+
+=back
+
+=cut
+
 =head1 SEE ALSO
 
-L<Locale::Maketext::Extract>,
-L<Locale::Maketext::Lexicon::Gettext>,
-L<Locale::Maketext>
+=over 4
+
+=item L<Locale::Maketext::Extract>
+
+=item L<Locale::Maketext::Lexicon::Gettext>
+
+=item L<Locale::Maketext>
+
+=item L<Locale::Maketext::Plugin::Perl>
+
+=item L<Locale::Maketext::Plugin::TT2>
+
+=item L<Locale::Maketext::Plugin::YAML>
+
+=item L<Locale::Maketext::Plugin::FormFu>
+
+=item L<Locale::Maketext::Plugin::Mason>
+
+=item L<Locale::Maketext::Plugin::TextTemplate>
+
+=item L<Locale::Maketext::Plugin::Generic>
+
+=back
+
 
 =head1 AUTHORS
 
@@ -96,11 +196,28 @@ Audrey Tang E<lt>cpan@audreyt.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2002, 2003, 2004 by Audrey Tang E<lt>cpan@audreyt.orgE<gt>.
+Copyright 2002-2008 by Audrey Tang E<lt>cpan@audreyt.orgE<gt>.
 
-This program is free software; you can redistribute it and/or 
-modify it under the same terms as Perl itself.
+This software is released under the MIT license cited below.
 
-See L<http://www.perl.com/perl/misc/Artistic.html>
+=head2 The "MIT" License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
 
 =cut

@@ -1,7 +1,35 @@
+[Changes for 0.70 - 2008-10-04]
+
+Contributed by: Clinton Gormley (DRTECH)
+
+* Refactored Locale::Maketext::Extract
+  - Each format is handled by a different plugin
+  - Each format recognises certain default file types
+  - Custom plugins can be used
+
+* Locale::Maketext::Extract::Plugin::TT2
+  - Uses Template Toolkit as a parser
+  - Handles inline filter, block filters, and function calls to "l" or "loc"
+    Contibuted by: Andy Wardley [ABW]
+
+* Locale::Maketext::Extract::Plugin::YAML uses the YAML module as a parser
+  and can recognise the form:
+     key: _"string"
+
+* Locale::Maketext::Extract::Run
+  - Added -P|plugins option to specify which parser plugins to use
+  - Added -w|warnings to turn parser warnings on and off
+  - Added -v|verbose to output the files that are being processed,
+    the plugins used to process them, and the extracted strings
+  - Fixed a bug in the File::Find routine to correctly prune
+    .svn directories and their contents
+
+* Locale::Maketext::Extract::Plugin::Perl
+  - Added a defined check to avoid a warning.
 
 [Changes for 0.68 - 2008-08-18]
 
-* Locale::Maketext::Extract: Support for other forms of localization in 
+* Locale::Maketext::Extract: Support for other forms of localization in
   TT templates and TT HEREDOCS.
   Contributed by: Felix Antonius Wilhelm Ostmann
 
@@ -13,7 +41,7 @@
 
 [Changes for 0.66 - 2008-02-12]
 
-* Locale::Maketext::Extract: Support in Extract.pm->extract for 
+* Locale::Maketext::Extract: Support in Extract.pm->extract for
   HTML::FormFu config files.
   Contributed by: Andreas Marienborg
 
@@ -185,7 +213,7 @@ Patches from Thierry Vignaud:
 [Changes for 0.46 - 2004-12-16]
 
 * Patch from Thierry Vignaud: Add a "_allow_empty" option to the
-  Gettext backend, to allow empty strings with 
+  Gettext backend, to allow empty strings with
 
 * Harmen suggested a doc patch to better document the _AUTO key
   for allowing empty or missing keys.

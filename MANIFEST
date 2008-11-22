@@ -10,7 +10,6 @@ inc/Module/Install/Fetch.pm
 inc/Module/Install/Include.pm
 inc/Module/Install/Makefile.pm
 inc/Module/Install/Metadata.pm
-inc/Module/Install/Scripts.pm
 inc/Module/Install/Win32.pm
 inc/Module/Install/WriteAll.pm
 inc/PerlIO.pm
@@ -18,6 +17,14 @@ inc/Test/Builder.pm
 inc/Test/Builder/Module.pm
 inc/Test/More.pm
 lib/Locale/Maketext/Extract.pm
+lib/Locale/Maketext/Extract/Plugin/Base.pm
+lib/Locale/Maketext/Extract/Plugin/FormFu.pm
+lib/Locale/Maketext/Extract/Plugin/Generic.pm
+lib/Locale/Maketext/Extract/Plugin/Mason.pm
+lib/Locale/Maketext/Extract/Plugin/Perl.pm
+lib/Locale/Maketext/Extract/Plugin/TextTemplate.pm
+lib/Locale/Maketext/Extract/Plugin/TT2.pm
+lib/Locale/Maketext/Extract/Plugin/YAML.pm
 lib/Locale/Maketext/Extract/Run.pm
 lib/Locale/Maketext/Lexicon.pm
 lib/Locale/Maketext/Lexicon/Auto.pm
@@ -30,7 +37,6 @@ MANIFEST.SKIP
 META.yml
 README
 script/xgettext.pl
-SIGNATURE
 t/1-basic.t
 t/2-lmg.t
 t/3-big-endian.t
@@ -38,6 +44,7 @@ t/4-encodings.t
 t/5-extract.t
 t/6-gettext.t
 t/7-comments.t
+t/8-plugin-args.t
 t/99-bug-import-for-subclasses.t
 t/comments.po
 t/gencat.m

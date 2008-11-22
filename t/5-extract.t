@@ -1,13 +1,13 @@
 #! /usr/bin/perl -w
 use lib '../lib';
 use strict;
-use Test::More tests => 43;
+use Test::More tests => 76;
 
 use_ok('Locale::Maketext::Extract');
-my $Ext = Locale::Maketext::Extract->new;
+my $Ext = Locale::Maketext::Extract->new();
 isa_ok($Ext => 'Locale::Maketext::Extract');
 
-extract_ok('_("123")'                      => 123,                  'Simple extraction');
+extract_ok('_("123")'                      => 123,             'Simple extraction');
 
 extract_ok('_("[_1] is happy")'            => '%1 is happy',   '[_1] to %1');
 extract_ok('_("%1 is happy")'              => '%1 is happy',   '%1 verbatim', 1);
@@ -48,7 +48,7 @@ extract_ok(q(_(qq{foo\bar}))               => "foo\bar",          'Interpolated 
 extract_ok('    content_loc: foo bar'          => "foo bar",    "html-formfu extraction");
 
 extract_ok(
-    q(my $x = loc('I "think" you\'re a cow.') . "\n";) => 'I "think" you\'re a cow.', 
+    q(my $x = loc('I "think" you\'re a cow.') . "\n";) => 'I "think" you\'re a cow.',
     "Handle escaped single quotes"
 );
 
@@ -61,11 +61,198 @@ extract_ok(
 extract_ok(q(_("","car"))                  => '',            'ignore empty string');
 extract_ok(q(_("0"))                       => '',            'ignore zero');
 
-extract_ok(<<'__EXAMPLE__'                 => 'foo bar baz',   'trim the string (tt)');
+
+#### BEGIN TT TESTS ############
+SKIP: { skip('Template.pm unavailable', 27) unless eval { require Template };
+
+extract_ok(<<'__EXAMPLE__'                 => 'foo bar baz', 'trim the string (tt)');
 [% |loc -%]
 foo bar baz
 [%- END %]
 __EXAMPLE__
+
+write_po_ok(q([% l(string) %])             => '', 'TT l function - no string');
+
+write_po_ok(q([% l('string') %])           => <<'__EXAMPLE__', 'TT l function - no arg');
+#: :1
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% l('string',arg) %])       => <<'__EXAMPLE__', 'TT l function - variable arg');
+#: :1
+#. (arg)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% l('string','arg') %])     => <<'__EXAMPLE__', 'TT l function - literal arg');
+#: :1
+#. ('arg')
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% string | l %])            => '', 'TT l inline filter - no string');
+
+write_po_ok(q([% 'string' | l %])          => <<'__EXAMPLE__', 'TT l inline filter - no arg');
+#: :1
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% 'string' | l('arg')  %])  => <<'__EXAMPLE__', 'TT l inline filter - literal arg');
+#: :1
+#. ('arg')
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% 'string' | l(arg)  %])    => <<'__EXAMPLE__', 'TT l inline filter - variable arg');
+#: :1
+#. (arg)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% |l %][% string %][% END %])    => '', 'TT l block filter - no string');
+
+SKIP: {
+    skip "Can't handle directive embedded in text blocks",1;
+    write_po_ok(q([% |l %] string [% var %][% END %])    => '', 'TT l block filter - embedded directive');
+}
+
+write_po_ok(q([% |l %]string[% END %])     => <<'__EXAMPLE__', 'TT l block filter - no arg');
+#: :1
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% |l('arg') %]string[% END %]) => <<'__EXAMPLE__', 'TT l block filter - literal arg');
+#: :1
+#. ('arg')
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% |l(arg) %]string[% END %])   => <<'__EXAMPLE__', 'TT l block filter - variable arg');
+#: :1
+#. (arg)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+
+write_po_ok(q([% FILTER l(arg) %]string[% END %])   => <<'__EXAMPLE__', 'TT block FILTER - variable arg');
+#: :1
+#. (arg)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+
+# Use just the TT2 parser, otherwise loc() throws false positives in the Perl plugin
+my $Old_Ext = $Ext;
+$Ext = Locale::Maketext::Extract->new(plugins=>{tt2 => '*'});
+
+write_po_ok(q([% loc('string',arg) %])       => <<'__EXAMPLE__', 'TT loc function - variable arg');
+#: :1
+#. (arg)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(q([% 'string' | loc('arg')  %])  => <<'__EXAMPLE__', 'TT loc inline filter - literal arg');
+#: :1
+#. ('arg')
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+$Ext = $Old_Ext;
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT multiline filter');
+[% | l(arg1,arg2) %]
+my string
+[% END %]
+__TT__
+#: :1-3
+#. (arg1, arg2)
+msgid ""
+"\n"
+"my string\n"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT multiline filter with chomp');
+[%- | l(arg1,arg2) -%]
+my string
+[%- END -%]
+__TT__
+#: :3
+#. (arg1, arg2)
+msgid "my string"
+msgstr ""
+__EXAMPLE__
+
+extract_ok(q([% l('catted ' _ 'string') %]) => "catted string",       "TT catted string");
+extract_ok(q([% l('catted ' _ string) %]) => "",                      "TT catted dir 1");
+extract_ok(q([% l('catted ' _ string) %]) => "",                      "TT catted dir 2");
+
+extract_ok(q([% l("embedded ${string}") %]) => "",                    "TT embedded string 1");
+extract_ok(q([% l("embedded \${string}") %]) => 'embedded ${string}', "TT embedded string 2");
+extract_ok(q([% l('embedded ${string}') %]) => 'embedded ${string}',  "TT embedded string 3");
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT key values');
+[% l('string', key1=>'value',key2=>value, key3 => value.method) %]
+__TT__
+#: :1
+#. ({ 'key1' => 'value', 'key2' => value, 'key3' => value.method })
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT complex args');
+[% l('string',b.method.$var(arg),c('arg').method.5) %]
+__TT__
+#: :1
+#. (b.method.$var(arg), c('arg').method.5)
+msgid "string"
+msgstr ""
+__EXAMPLE__
+
+#### END TT TESTS ############
+}
+
+#### BEGIN YAML TESTS ############
+SKIP: { skip('YAML.pm unavailable', 27) unless eval { require YAML };
+
+extract_ok(qq(key: _"string"\n)               => "string",       "YAML double quotes");
+extract_ok(qq(key: _'string'\n)               => "string",       "YAML single quotes");
+extract_ok(qq(key: _"str"ing"\n)              => 'str"ing',      "YAML embedded double quote");
+
+extract_ok(qq( key: { s1: _"string_1", s2: _'string_2', s3: _'string'3'}\n)
+    => q(string_1string'3string_2), 'YAML inline hash');
+
+
+extract_ok(qq( - _"string_1"\n - _'string_2'\n - _'string'3'\n)
+    => q(string_1string'3string_2), 'YAML array');
+
+extract_ok(qq(key: [ _"string_1", _'string_2', _'string'3' ]\n)
+    => q(string_1string'3string_2), 'YAML Inline arrays'   );
+
+write_po_ok(qq(---\nkey: _"string"\n---\nkey2: _"string2"\n)   => <<'__EXAMPLE__', 'YAML multiple docs');
+#: :2
+msgid "string"
+msgstr ""
+
+#: :3
+msgid "string2"
+msgstr ""
+__EXAMPLE__
+
+#### END YAML TESTS ############
+
 
 extract_ok(<<'__EXAMPLE__'                 => "123\n",       "Simple extraction (heredoc)");
 _(<<__LOC__);
@@ -207,3 +394,4 @@ sub write_po_ok {
     $Ext->clear;
 }
 
+}
