@@ -135,6 +135,8 @@ sub file_types {
     return ( qw( tt tt2 html ), qr/\.tt2?\./ );
 }
 
+my %Escapes = map { ( "\\$_" => eval("qq(\\$_)") ) } qw(t n r f b a e);
+
 #===================================
 sub extract {
 #===================================
@@ -158,8 +160,16 @@ sub extract {
         || die $parser->error;
 
     foreach my $entry ( @{ $parser->{extracted} } ) {
-        $entry->[2]=~s/^\((.*)\)$/$1/; # Remove () from vars
-        $self->add_entry( @$entry);
+        $entry->[2] =~ s/^\((.*)\)$/$1/s;    # Remove () from vars
+        $_ =~ s/\\'/'/gs                     # Unescape \'
+            for @{$entry}[ 0, 2 ];
+        $entry->[2] =~ s/\\(?!")/\\\\/gs;    # Escape all \ not followed by "
+                                             # Escape argument lists correctly
+        while ( my ( $char, $esc ) = each %Escapes ) {
+            $entry->[2] =~ s/$esc/$char/g;
+        }
+
+        $self->add_entry(@$entry);
     }
 }
 
@@ -235,6 +245,7 @@ our $PARSER;
 sub textblock {
 #===================================
     my ( $class, $text ) = @_;
+    $text =~ s/([\\'])/\\$1/g;
     return "'$text'";
 }
 
@@ -272,6 +283,7 @@ sub ident {
         {
             my $string = shift @{ $ident->[1] };
             strip_quotes($string);
+            $string =~ s/\\\\/\\/g;
             my $args = join_args( $ident->[1] );
             push @{ $PARSER->{extracted} },
                 [ $string, ${ $PARSER->{LINE} }, $args ];
@@ -284,16 +296,17 @@ sub ident {
 sub text {
 #===================================
     my ( $class, $text ) = @_;
+    $text =~ s/\\/\\\\/g;
     return "'$text'";
 }
 
 #===================================
 sub quoted {
 #===================================
-    my ($class, $items) = @_;
+    my ( $class, $items ) = @_;
     return '' unless @$items;
-    return ($items->[0]) if scalar @$items == 1;
-    return '(' . join(' _ ', @$items) . ')';
+    return ( $items->[0] ) if scalar @$items == 1;
+    return '(' . join( ' _ ', @$items ) . ')';
 }
 
 #===================================
@@ -323,6 +336,7 @@ sub filter {
         unless $name eq "'l'"
             or $name eq "'loc'";
     if ( strip_quotes($block) ) {
+        $block =~ s/\\\\/\\/g;
         $args = join_args( $class->args($args) );
 
         # NOTE: line number is at end of block, and can be a range
@@ -351,7 +365,15 @@ sub join_args {
 #===================================
     my $args = shift;
     return '' unless $args && @$args;
-    return '(' . join( ', ', @$args ) . ')';
+    my @new_args = (@$args);
+    for (@new_args) {
+        s/\\\\/\\/g;
+        if ( strip_quotes($_) ) {
+            s/"/\\"/g;
+            $_ = qq{"$_"};
+        }
+    }
+    return '(' . join( ', ', @new_args ) . ')';
 }
 
 =head1 ACKNOWLEDGEMENTS

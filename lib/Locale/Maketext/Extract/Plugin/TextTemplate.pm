@@ -4,7 +4,7 @@ use strict;
 use base qw(Locale::Maketext::Extract::Plugin::Base);
 use vars qw($VERSION);
 
-$VERSION = '0.30';
+$VERSION = '0.31';
 
 =head1 NAME
 
@@ -58,8 +58,8 @@ sub extract {
         require Lingua::EN::Sentence;
 
         {
-            package MyParser;
-            @MyParser::ISA = 'HTML::Parser';
+            package Locale::Maketext::Extract::Plugin::TextTemplate::Parser;
+            our @ISA = 'HTML::Parser';
             *{'text'} = sub {
                 my ($self, $str, $is_cdata) = @_;
                 my $sentences = Lingua::EN::Sentence::get_sentences($str) or return;
@@ -68,7 +68,7 @@ sub extract {
             };
         }
 
-        my $p = MyParser->new;
+        my $p = Locale::Maketext::Extract::Plugin::TextTemplate::Parser->new;
         while (m/\G((.*?)^(?:START|END)[A-Z]+$)/smg) {
             my ($str) = ($2);
             $line += ( () = ($1 =~ /\n/g) ); # cryptocontext!

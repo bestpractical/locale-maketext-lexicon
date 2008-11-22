@@ -1,7 +1,7 @@
 #! /usr/bin/perl -w
 use lib '../lib';
 use strict;
-use Test::More tests => 76;
+use Test::More tests => 95;
 
 use_ok('Locale::Maketext::Extract');
 my $Ext = Locale::Maketext::Extract->new();
@@ -63,7 +63,7 @@ extract_ok(q(_("0"))                       => '',            'ignore zero');
 
 
 #### BEGIN TT TESTS ############
-SKIP: { skip('Template.pm unavailable', 27) unless eval { require Template };
+SKIP: { skip('Template.pm unavailable', 46) unless eval { require Template };
 
 extract_ok(<<'__EXAMPLE__'                 => 'foo bar baz', 'trim the string (tt)');
 [% |loc -%]
@@ -88,7 +88,7 @@ __EXAMPLE__
 
 write_po_ok(q([% l('string','arg') %])     => <<'__EXAMPLE__', 'TT l function - literal arg');
 #: :1
-#. ('arg')
+#. ("arg")
 msgid "string"
 msgstr ""
 __EXAMPLE__
@@ -103,7 +103,7 @@ __EXAMPLE__
 
 write_po_ok(q([% 'string' | l('arg')  %])  => <<'__EXAMPLE__', 'TT l inline filter - literal arg');
 #: :1
-#. ('arg')
+#. ("arg")
 msgid "string"
 msgstr ""
 __EXAMPLE__
@@ -119,6 +119,7 @@ write_po_ok(q([% |l %][% string %][% END %])    => '', 'TT l block filter - no s
 
 SKIP: {
     skip "Can't handle directive embedded in text blocks",1;
+
     write_po_ok(q([% |l %] string [% var %][% END %])    => '', 'TT l block filter - embedded directive');
 }
 
@@ -130,7 +131,7 @@ __EXAMPLE__
 
 write_po_ok(q([% |l('arg') %]string[% END %]) => <<'__EXAMPLE__', 'TT l block filter - literal arg');
 #: :1
-#. ('arg')
+#. ("arg")
 msgid "string"
 msgstr ""
 __EXAMPLE__
@@ -164,7 +165,7 @@ __EXAMPLE__
 
 write_po_ok(q([% 'string' | loc('arg')  %])  => <<'__EXAMPLE__', 'TT loc inline filter - literal arg');
 #: :1
-#. ('arg')
+#. ("arg")
 msgid "string"
 msgstr ""
 __EXAMPLE__
@@ -203,6 +204,196 @@ extract_ok(q([% l("embedded ${string}") %]) => "",                    "TT embedd
 extract_ok(q([% l("embedded \${string}") %]) => 'embedded ${string}', "TT embedded string 2");
 extract_ok(q([% l('embedded ${string}') %]) => 'embedded ${string}',  "TT embedded string 3");
 
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 1');
+[% l('my \ string', 'my \ string') %]
+[% l('my \\ string', 'my \\ string') %]
+[% l("my \\ string", "my \\ string") %]
+__TT__
+#: :1 :2 :3
+#. ("my \\ string")
+msgid "my \\ string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 2');
+[% l('my str\'ing','my str\'ing') %]
+__TT__
+#: :1
+#. ("my str'ing")
+msgid "my str'ing"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 3');
+[% l('my string"','my string"') %]
+__TT__
+#: :1
+#. ("my string\"")
+msgid "my string\""
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 4');
+[% l("my string'","my string'") %]
+__TT__
+#: :1
+#. ("my string'")
+msgid "my string'"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 5');
+[% l("my \nstring","my \nstring") %]
+__TT__
+#: :1
+#. ("my \nstring")
+msgid ""
+"my \n"
+"string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 6');
+[% l('my \nstring','my \nstring') %]
+__TT__
+#: :1
+#. ("my \\nstring")
+msgid "my \\nstring"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 7');
+[% 'my \ string'  | l('my \ string') %]
+[% 'my \\ string' | l('my \\ string') %]
+[% "my \\ string" | l("my \\ string") %]
+__TT__
+#: :1 :2 :3
+#. ("my \\ string")
+msgid "my \\ string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 8');
+[% 'my str\'ing' | l('my str\'ing') %]
+__TT__
+#: :1
+#. ("my str'ing")
+msgid "my str'ing"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 9');
+[% 'my string"' | l('my string"') %]
+__TT__
+#: :1
+#. ("my string\"")
+msgid "my string\""
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 10');
+[% "my string'" |l("my string'") %]
+__TT__
+#: :1
+#. ("my string'")
+msgid "my string'"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 11');
+[% "my \nstring" |l("my \nstring") %]
+__TT__
+#: :0-1
+#. ("my \nstring")
+msgid ""
+"my \n"
+"string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 12');
+[% 'my \nstring' |l('my \nstring') %]
+__TT__
+#: :1
+#. ("my \\nstring")
+msgid "my \\nstring"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 13');
+[% | l('my \ string') %]my \ string[% END %]
+[% | l('my \\ string') %]my \\ string[% END %]
+__TT__
+#: :1
+#. ("my \\ string")
+msgid "my \\ string"
+msgstr ""
+
+#: :2
+#. ("my \\ string")
+msgid "my \\\\ string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 14');
+[% | l('my str\'ing') %]my str'ing[% END %]
+__TT__
+#: :1
+#. ("my str'ing")
+msgid "my str'ing"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 15');
+[% | l('my str\'ing') %]my str\'ing[% END %]
+__TT__
+#: :1
+#. ("my str'ing")
+msgid "my str\\'ing"
+msgstr ""
+__EXAMPLE__
+
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 16');
+[% | l("my str\"ing") %]my str"ing[% END %]
+__TT__
+#: :1
+#. ("my str\"ing")
+msgid "my str\"ing"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 17');
+[% | l("my str\"ing") %]my str\"ing[% END %]
+__TT__
+#: :1
+#. ("my str\"ing")
+msgid "my str\\\"ing"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 18');
+[% |l("my \nstring") %]my
+string[% END %]
+__TT__
+#: :1-2
+#. ("my \nstring")
+msgid ""
+"my\n"
+"string"
+msgstr ""
+__EXAMPLE__
+
+write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 19');
+[% |l('my \nstring') %]my \nstring[% END %]
+__TT__
+#: :1
+#. ("my \\nstring")
+msgid "my \\nstring"
+msgstr ""
+__EXAMPLE__
+
+
 write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT key values');
 [% l('string', key1=>'value',key2=>value, key3 => value.method) %]
 __TT__
@@ -216,7 +407,7 @@ write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT complex args');
 [% l('string',b.method.$var(arg),c('arg').method.5) %]
 __TT__
 #: :1
-#. (b.method.$var(arg), c('arg').method.5)
+#. (b.method.$var(arg), c("arg").method.5)
 msgid "string"
 msgstr ""
 __EXAMPLE__
@@ -225,7 +416,7 @@ __EXAMPLE__
 }
 
 #### BEGIN YAML TESTS ############
-SKIP: { skip('YAML.pm unavailable', 27) unless eval { require YAML };
+SKIP: { skip('YAML.pm unavailable', 18) unless eval { require YAML };
 
 extract_ok(qq(key: _"string"\n)               => "string",       "YAML double quotes");
 extract_ok(qq(key: _'string'\n)               => "string",       "YAML single quotes");

@@ -38,6 +38,8 @@ Valid formats are:
 
 =back
 
+You cannot use block or folded strings with this plugin.
+
 =head1 KNOWN FILE TYPES
 
 =over 4
