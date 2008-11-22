@@ -350,7 +350,7 @@ sub read_po {
 
     my $header = '';
 
-    local *LEXICON;
+    local (*LEXICON,$_);
     open LEXICON, $file or die $!;
     while (<LEXICON>) {
         ( 1 .. /^$/ ) or last;

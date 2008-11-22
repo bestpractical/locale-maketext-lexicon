@@ -58,6 +58,7 @@ sub run {
     foreach my $file ( @{ $opts{f} || [] } ) {
         open FILE, $file or die "Cannot open $file: $!";
         while (<FILE>) {
+            chomp;
             push @ARGV, $_ if -r and !-d;
         }
     }

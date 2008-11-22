@@ -1,7 +1,7 @@
 #! /usr/bin/perl -w
 use lib '../lib';
 use strict;
-use Test::More tests => 95;
+use Test::More tests => 98;
 
 use_ok('Locale::Maketext::Extract');
 my $Ext = Locale::Maketext::Extract->new();
@@ -550,6 +550,52 @@ msgstr ""
 msgid "example2 %1\n"
 msgstr ""
 __EXPECTED__
+
+write_po_ok(<<'__EXAMPLE__'                => <<'__EXPECTED__', "concat (heredoc)");
+_('exam'.<<"", 10)
+ple1 %1
+
+__EXAMPLE__
+#: :1
+#. (10)
+msgid "example1 %1\n"
+msgstr ""
+__EXPECTED__
+
+write_po_ok(<<'__EXAMPLE__'                => <<'__EXPECTED__', "two _() calls with concat over multiline (heredoc)");
+_('example' .
+<<"", 10)
+1 %1
+
+_(<<"", 5)
+example2 %1
+
+__EXAMPLE__
+#: :1
+#. (10)
+msgid "example1 %1\n"
+msgstr ""
+
+#: :5
+#. (5)
+msgid "example2 %1\n"
+msgstr ""
+__EXPECTED__
+
+write_po_ok(<<'__EXAMPLE__'                => <<'__EXPECTED__', "i can concat the world!");
+_(
+'\$foo'
+."\$bar"
+.<<''
+\$baz
+
+)
+__EXAMPLE__
+#: :2
+msgid "\\$foo$bar\\$baz\n"
+msgstr ""
+__EXPECTED__
+
 
 sub extract_ok {
     my ($text, $expected, $info, $verbatim) = @_;

@@ -1,3 +1,20 @@
+[Changes for 0.74 - 2008-11-22]
+
+ * Locale::Maketext::Extract::Plugin::Perl
+   The Perl plugin now combines concatenated strings, eg
+   loc('string' . ' and this')
+   Contributed by Felix Ostmann
+
+ * Locale::Maketext::Extract::Run
+   Localised $_ correctly to avoid conflict with external strings
+   Contributed by Sebastian Knapp
+
+ * Locale::Maketext::Run
+   Fixed bug http://rt.cpan.org/Ticket/Display.html?id=31940
+   Debian bug http://bugs.debian.org/307777
+   xgettext.pl -f was not chomping file names correctly
+   Contributed by Niko Tyni
+
 [Changes for 0.73 - 2008-10-28]
  * Locale::Maketext::Extract::Plugin::TextTemplate
    - renamed MyParser to Locale::Maketext::Extract::Plugin::TextTemplate::Parser

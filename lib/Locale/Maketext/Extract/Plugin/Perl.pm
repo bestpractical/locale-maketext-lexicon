@@ -19,7 +19,8 @@ Locale::Maketext::Extract::Plugin::Perl - Perl format parser
 
 =head1 DESCRIPTION
 
-Extracts strings to localise (including HEREDOCS) from Perl code
+Extracts strings to localise (including HEREDOCS and
+concatenated strings) from Perl code.
 
 =head1 SHORT PLUGIN NAME
 
@@ -81,10 +82,11 @@ sub extract {
     my $self = shift;
     local $_ = shift;
 
-    local $SIG{__WARN__} = sub {die @_};
+    local $SIG{__WARN__} = sub { die @_ };
 
     # Perl code:
-    my ( $state, $str, $vars, $quo, $heredoc ) = (0);
+    my ( $state, $line_offset, $str, $str_part, $vars, $quo, $heredoc )
+        = ( 0, 0 );
     my $orig = 1 + ( () = ( ( my $__ = $_ ) =~ /\n/g ) );
 
 PARSER: {
@@ -102,27 +104,49 @@ PARSER: {
             && m/^([\S\(])\s*/gc
             && do { $state = ( ( $1 eq '(' ) ? PAR : NUL ); redo };
 
+        # concat
+        $state == PAR
+            && defined($str)
+            && m/^(\s*\.\s*)/gc
+            && do { $line_offset += ( () = ( ( my $__ = $1 ) =~ /\n/g ) ); redo };
+
+        # str_part
+        $state == PAR && defined($str_part) && do {
+            if ( ( $quo == QUO1 ) || ( $quo == QUO5 ) ) {
+                $str_part =~ s/\\([\\'])/$1/g
+                    if ($str_part);    # normalize q strings
+            }
+            elsif ( $quo != QUO6 ) {
+                $str_part =~ s/(\\(?:[0x]..|c?.))/"qq($1)"/eeg
+                    if ($str_part);    # normalize qq / qx strings
+            }
+            $str .= $str_part;
+            undef $str_part;
+            undef $quo;
+            redo;
+        };
+
         # begin or end of string
         $state == PAR && m/^(\')/gc && do { $state = $quo = QUO1; redo };
-        $state == QUO1 && m/^([^'\\]+)/gc   && do { $str .= $1; redo };
-        $state == QUO1 && m/^((?:\\.)+)/gcs && do { $str .= $1; redo };
+        $state == QUO1 && m/^([^'\\]+)/gc   && do { $str_part .= $1; redo };
+        $state == QUO1 && m/^((?:\\.)+)/gcs && do { $str_part .= $1; redo };
         $state == QUO1 && m/^\'/gc && do { $state = PAR; redo };
 
         $state == PAR && m/^\"/gc && do { $state = $quo = QUO2; redo };
-        $state == QUO2 && m/^([^"\\]+)/gc   && do { $str .= $1; redo };
-        $state == QUO2 && m/^((?:\\.)+)/gcs && do { $str .= $1; redo };
+        $state == QUO2 && m/^([^"\\]+)/gc   && do { $str_part .= $1; redo };
+        $state == QUO2 && m/^((?:\\.)+)/gcs && do { $str_part .= $1; redo };
         $state == QUO2 && m/^\"/gc && do { $state = PAR; redo };
 
         $state == PAR && m/^\`/gc && do { $state = $quo = QUO3; redo };
-        $state == QUO3 && m/^([^\`]*)/gc && do { $str .= $1; redo };
+        $state == QUO3 && m/^([^\`]*)/gc && do { $str_part .= $1; redo };
         $state == QUO3 && m/^\`/gc && do { $state = PAR; redo };
 
         $state == PAR && m/^qq\{/gc && do { $state = $quo = QUO4; redo };
-        $state == QUO4 && m/^([^\}]*)/gc && do { $str .= $1; redo };
+        $state == QUO4 && m/^([^\}]*)/gc && do { $str_part .= $1; redo };
         $state == QUO4 && m/^\}/gc && do { $state = PAR; redo };
 
         $state == PAR && m/^q\{/gc && do { $state = $quo = QUO5; redo };
-        $state == QUO5 && m/^([^\}]*)/gc && do { $str .= $1; redo };
+        $state == QUO5 && m/^([^\}]*)/gc && do { $str_part .= $1; redo };
         $state == QUO5 && m/^\}/gc && do { $state = PAR; redo };
 
         # find heredoc terminator, then get the
@@ -154,7 +178,7 @@ PARSER: {
         $state == HERE
             && m/^.*\r?\n/gc
             && s/\G(.*?\r?\n)$heredoc(\r?\n)//s
-            && do { $state = PAR; $str .= $1; redo };
+            && do { $state = PAR; $str_part .= $1; $line_offset++; redo };
 
         # end ()
         #
@@ -162,27 +186,16 @@ PARSER: {
         $state == PAR && m/^\s*[\)]/gc && do {
             $state = NUL;
             $vars =~ s/[\n\r]//g if ($vars);
-            if ($quo) {
-                if ( ( $quo == QUO1 ) || ( $quo == QUO5 ) ) {
-                    $str =~ s/\\([\\'])/$1/g if ($str);  # normalize q strings
-                }
-                elsif ( $quo != QUO6 ) {
-                    $str =~ s/(\\(?:[0x]..|c?.))/"qq($1)"/eeg
-                        if ($str);    # normalize qq / qx strings
-                }
-            }
-            # heredoc loosing the terminating line,
-            #so decrement one more line for heredoc
             $self->add_entry( $str,
-                           $line - ( () = $str =~ /\n/g ) - defined($heredoc),
-                           $vars )
-                if ($str);
+                              $line - ( () = $str =~ /\n/g ) - $line_offset,
+                              $vars )
+                if $str;
             undef $str;
             undef $vars;
             undef $heredoc;
+            $line_offset = 0;
             redo;
         };
-
         # a line of vars
         $state == PAR && m/^([^\)]*)/gc && do { $vars .= "$1\n"; redo };
     }
