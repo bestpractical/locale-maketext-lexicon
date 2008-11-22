@@ -1,3 +1,22 @@
+[Changes for 0.73 - 2008-10-28]
+ * Locale::Maketext::Extract::Plugin::TextTemplate
+   - renamed MyParser to Locale::Maketext::Extract::Plugin::TextTemplate::Parser
+     to avoid namespace clashes
+ * CPANTS improvements
+   - Updated the Makefile to list all mentioned modules
+   - Added a LICENSE file
+   - added a Test::Pod test
+
+[Changes for 0.72 - 2008-10-10]
+
+Contributed by: Clinton Gormley (DRTECH)
+
+ * Locale::Maketext::Extract::Plugin::TT2
+   - fixed bug where extracted strings still had escaped quotes and backslashes
+   - if args are literal, they're now wrapped in double quotes instead of
+     single quotes
+   - special characters in args are escaped properly
+
 [Changes for 0.71 - 2008-10-05]
 
 * Bump version number of Locale::Maketext::Extract::Plugin::TextTemplate

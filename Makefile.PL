@@ -10,9 +10,17 @@ license         'MIT';
 perl_version    '5.005';
 all_from        'lib/Locale/Maketext/Lexicon.pm';
 install_script  'script/xgettext.pl';
-requires        'Locale::Maketext' => '0.01';
-recommends      'Template'  => '2.20';
-recommends      'YAML' => '0.66';
+requires        'Locale::Maketext'     => '0.01';
+recommends      'Template'             => '2.20';
+recommends      'Template::Constants'  => '2.75';
+recommends      'YAML'                 => '0.66';
+recommends      'YAML::Loader'         => '0.66';
+recommends      'HTML::Parser'         => '3.56';
+recommends      'Lingua::EN::Sentence' => '0.25';
+test_requires   'Test::More'           => '0';
+if ( $^O eq 'MSWin32' ) {
+    recommends  'Win32::Console' => '0.09';
+}
 include_deps    'Test::More';
 
 WriteAll;
