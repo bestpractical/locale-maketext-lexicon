@@ -1,19 +1,28 @@
---- 
-abstract: Use other catalog formats in Maketext
-author: 
-  - Audrey Tang <cpan@audreyt.org>
+---
+abstract: 'Use other catalog formats in Maketext'
+author:
+  - 'Audrey Tang <cpan@audreyt.org>'
+build_requires:
+  Test::More: 0
 distribution_type: module
-generated_by: Module::Install version 0.68
+generated_by: 'Module::Install version 0.77'
 license: MIT
-meta-spec: 
-  url: http://module-build.sourceforge.net/META-spec-v1.3.html
-  version: 1.3
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
 name: Locale-Maketext-Lexicon
-no_index: 
-  directory: 
+no_index:
+  directory:
     - inc
     - t
-requires: 
+recommends:
+  HTML::Parser: 3.56
+  Lingua::EN::Sentence: 0.25
+  Template: 2.20
+  Template::Constants: 2.75
+  YAML: 0.66
+  YAML::Loader: 0.66
+requires:
   Locale::Maketext: 0.01
-  perl: 5.004
-version: 0.67
+  perl: 5.005
+version: 0.75

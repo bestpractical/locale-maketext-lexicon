@@ -88,6 +88,14 @@ Output files will be placed in directory I<DIR>.
 Enables GNU gettext interoperability by printing C<#, perl-maketext-format>
 before each entry that has C<%> variables.
 
+=item B<-W>, B<--wrap>
+
+If wrap is enabled, then, for entries with multiple file locations, each
+location is listed on a separate line. The default is to put them all
+on a single line.
+
+Other comments are not affected.
+
 =back
 
 =head2 Plugins:

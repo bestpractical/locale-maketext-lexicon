@@ -1,8 +1,9 @@
 package Locale::Maketext::Extract::Run;
-$Locale::Maketext::Lexicon::Extract::Run::VERSION = '0.32';
+$Locale::Maketext::Lexicon::Extract::Run::VERSION = '0.33';
 
 use strict;
 use vars qw( @ISA @EXPORT_OK );
+use File::Spec::Functions qw(catfile);
 
 =head1 NAME
 
@@ -44,6 +45,7 @@ sub run {
                               'd|default-domain:s',
                               'p|output-dir:s@',
                               'P|plugin:s@',
+                              'W|wrap!',
                               'w|warnings!',
                               'v|verbose+',
                               'h|help',
@@ -51,7 +53,7 @@ sub run {
 
     help() if $opts{h};
 
-    my %extract_options = %{$self->_parse_extract_options(\%opts)};
+    my %extract_options = %{ $self->_parse_extract_options( \%opts ) };
 
     my @po = @{ $opts{o} || [ ( $opts{d} || 'messages' ) . '.po' ] };
 
@@ -67,7 +69,8 @@ sub run {
         File::Find::find( {
                wanted => sub {
                    if (-d) {
-                       $File::Find::prune = /^(\.svn|blib|autogen|var|m4|local|CVS)$/;
+                       $File::Find::prune
+                           = /^(\.svn|blib|autogen|var|m4|local|CVS)$/;
                        return;
                    }
                    return
@@ -86,16 +89,13 @@ sub run {
 
     my $cwd = getcwd();
 
+    my $Ext = Locale::Maketext::Extract->new(%extract_options);
     foreach my $dir ( @{ $opts{p} || ['.'] } ) {
+        $Ext->extract_file($_) for grep !/\.po$/i, @ARGV;
         foreach my $po (@po) {
-            my $Ext = Locale::Maketext::Extract->new(%extract_options);
             $Ext->read_po($po) if -r $po and -s _;
-            $Ext->extract_file($_) for grep !/\.po$/i, @ARGV;
             $Ext->compile( $opts{u} ) or next;
-
-            chdir $dir;
-            $Ext->write_po( $po, $opts{g} );
-            chdir $cwd;
+            $Ext->write_po( catfile( $dir, $po ), $opts{g} );
         }
     }
 }
@@ -103,11 +103,13 @@ sub run {
 sub _parse_extract_options {
     my $self = shift;
     my $opts = shift;
-        # If a list of plugins is specified, then we use those modules
+
+    # If a list of plugins is specified, then we use those modules
     # plus their default list of file extensionse
     # and warnings enabled by default
 
-    my %extract_options = (verbose => $opts->{v});
+    my %extract_options
+        = ( verbose => $opts->{v}, wrap => $opts->{W} || 0 );
 
     if ( my $plugin_args = $opts->{P} ) {
 
@@ -115,9 +117,8 @@ sub _parse_extract_options {
         my %plugins;
 
         foreach my $param (@$plugin_args) {
-            my ( $plugin, $args ) = (
-                $param =~ /^([a-z_]\w+(?:::\w+)*)(?:=(.+))?$/i
-            );
+            my ( $plugin, $args )
+                = ( $param =~ /^([a-z_]\w+(?:::\w+)*)(?:=(.+))?$/i );
             die "Couldn't understand plugin option '$param'"
                 unless $plugin;
             my @extensions;
@@ -148,6 +149,7 @@ sub _parse_extract_options {
     return \%extract_options;
 
 }
+
 sub help {
     local $SIG{__WARN__} = sub { };
     { exec "perldoc $0"; }

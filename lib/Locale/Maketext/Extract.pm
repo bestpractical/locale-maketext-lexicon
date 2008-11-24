@@ -1,5 +1,5 @@
 package Locale::Maketext::Extract;
-$Locale::Maketext::Extract::VERSION = '0.32';
+$Locale::Maketext::Extract::VERSION = '0.33';
 
 use strict;
 
@@ -262,6 +262,7 @@ sub new {
                          lexicon          => {},
                          warnings         => 0,
                          verbose          => 0,
+                         wrap             => 0,
                          %params,
                       },
                       $class
@@ -321,7 +322,7 @@ sub plugins {
             eval {
                 require $filename && 1;
                 1;
-                } or next;
+            } or next;
             push @plugins, $plugin_class->new( $params{$name} );
         }
         $self->{plugins} = \@plugins;
@@ -350,7 +351,7 @@ sub read_po {
 
     my $header = '';
 
-    local (*LEXICON,$_);
+    local ( *LEXICON, $_ );
     open LEXICON, $file or die $!;
     while (<LEXICON>) {
         ( 1 .. /^$/ ) or last;
@@ -363,6 +364,7 @@ sub read_po {
     require Locale::Maketext::Lexicon::Gettext;
     my $lexicon  = {};
     my $comments = {};
+    $self->set_compiled_entries( {} );
 
     if ( defined($_) ) {
         ( $lexicon, $comments )
@@ -408,8 +410,8 @@ sub write_po {
             my @lines = split "\n", $comment;
             print LEXICON map {"# $_\n"} @lines;
         }
-        print LEXICON $self->msg_positions($msgid);
         print LEXICON $self->msg_variables($msgid);
+        print LEXICON $self->msg_positions($msgid);
         print LEXICON $self->msg_format($msgid) if $add_format_marker;
         print LEXICON $self->msg_out($msgid);
     }
@@ -444,7 +446,7 @@ sub extract {
                 my $entries = $plugin->entries;
                 if ( $verbose > 1 && @$entries ) {
                     push @messages,
-                          "  - "
+                          "     - "
                         . ref($plugin)
                         . ' - Strings extracted : '
                         . ( scalar @$entries );
@@ -458,8 +460,11 @@ sub extract {
                         # pad string
                         $string =~ s/\n/\n               /g;
                         push @messages,
-                            qq[    - Line: $line, Vars: ($vars)],
-                            qq[    - String: "$string"];
+                            sprintf( qq[       - %-8s "%s" (%s)],
+                                     $line . ':',
+                                     $string, $vars
+                            ),
+                            ;
                     }
                 }
                 $total += @$entries;
@@ -477,7 +482,7 @@ sub extract {
         }
     }
 
-    print STDERR " * $file - Strings extracted : $total"
+    print STDERR " * $file\n   - Total strings extracted : $total"
         . ( $error_found ? ' [ERROR ] ' : '' ) . "\n"
         if $verbose
             && ( $total || $error_found );
@@ -567,7 +572,9 @@ sub msg_positions {
     my ( $self, $msgid ) = @_;
     my %files = ( map { ( " $_->[0]:$_->[1]" => 1 ) }
                   $self->compiled_entry($msgid) );
-    return join( '', '#:', sort( keys %files ), "\n" );
+    return $self->{wrap}
+        ? join( "\n", ( map { '#:' . $_ } sort( keys %files ) ), '' )
+        : join( '', '#:', sort( keys %files ), "\n" );
 }
 
 sub msg_variables {

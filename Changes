@@ -1,3 +1,26 @@
+[Changes for 0.75 - 2008-11-24]
+
+ * Locale::Maketext::Extract / Locale::Maketext::Extract::Run
+   Changed the order of extraction to:
+     - extract all strings
+     - then read, compile and write each PO file
+   Speeds the extraction process up by a factor of the number of languages used.
+   $Ext->read_po now resets the compiled entries, so that a fresh po file can
+   be written.
+
+   Also tidied up the verbose messages
+   Bumped both to 0.33
+
+ * Locale::Maketext::Extract::Run / xgettext.pl
+   Added the -W | --wrap option, which forces the file location
+   comments to be on separate lines, as per POEdit
+
+   The output order of the PO file has changed to match gettext producers, so
+   the arguments now appear before the file locations.
+
+ * t/5-extract_strings.tt
+   Fixed a bad SKIP plan
+
 [Changes for 0.74 - 2008-11-22]
 
  * Locale::Maketext::Extract::Plugin::Perl

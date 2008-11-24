@@ -1,5 +1,5 @@
 package Locale::Maketext::Lexicon;
-$Locale::Maketext::Lexicon::VERSION = '0.74';
+$Locale::Maketext::Lexicon::VERSION = '0.75';
 
 use 5.004;
 use strict;
