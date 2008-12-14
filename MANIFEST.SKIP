@@ -1,4 +1,5 @@
 ^.svn$
+.svn/
 .bak$
 .rej$
 ~$

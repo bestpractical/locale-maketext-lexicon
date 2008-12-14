@@ -25,4 +25,4 @@ recommends:
 requires:
   Locale::Maketext: 0.01
   perl: 5.005
-version: 0.75
+version: 0.76

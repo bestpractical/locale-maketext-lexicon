@@ -168,7 +168,7 @@ sub extract {
         while ( my ( $char, $esc ) = each %Escapes ) {
             $entry->[2] =~ s/$esc/$char/g;
         }
-
+        $entry->[1] =~ s/\D+.*$//;
         $self->add_entry(@$entry);
     }
 }

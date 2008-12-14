@@ -1,5 +1,5 @@
 package Locale::Maketext::Lexicon;
-$Locale::Maketext::Lexicon::VERSION = '0.75';
+$Locale::Maketext::Lexicon::VERSION = '0.76';
 
 use 5.004;
 use strict;
@@ -297,7 +297,7 @@ sub import {
 
             local $@;
             my @content =
-              eval { $class->lexicon_get( $src, scalar caller, $lang ); };
+              eval { $class->lexicon_get( $src, scalar caller(1), $lang ); };
             next if $@ and $@ =~ /^next\b/;
             die $@ if $@;
 

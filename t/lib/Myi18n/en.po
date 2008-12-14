@@ -9,17 +9,5 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-# Some user comment
-#: comments.t:1
-msgid "A random string to check that comments work"
-msgstr "Una stringa casuale per controllare che i commenti funzionino"
-
-#: comments.t:2
-#, fuzzy
-msgid "Fuzzy flag"
-msgstr "Fuzzy flag trans"
-
-#: comments.t:3
-#, fuzzy
-msgid "Fuzzy plus marker %1"
-msgstr "Fuzzy plus marker %1 trans"
+msgid "Test relative langfiles"
+msgstr "Relative works!"

@@ -178,7 +178,7 @@ my string
 [% END %]
 __TT__
 #. (arg1, arg2)
-#: :1-3
+#: :1
 msgid ""
 "\n"
 "my string\n"
@@ -304,7 +304,7 @@ write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 11');
 [% "my \nstring" |l("my \nstring") %]
 __TT__
 #. ("my \nstring")
-#: :0-1
+#: :0
 msgid ""
 "my \n"
 "string"
@@ -377,7 +377,7 @@ write_po_ok(<<'__TT__'  => <<'__EXAMPLE__', 'TT quoted - 18');
 string[% END %]
 __TT__
 #. ("my \nstring")
-#: :1-2
+#: :1
 msgid ""
 "my\n"
 "string"

@@ -1,5 +1,5 @@
 package Locale::Maketext::Lexicon::Gettext;
-$Locale::Maketext::Lexicon::Gettext::VERSION = '0.16';
+$Locale::Maketext::Lexicon::Gettext::VERSION = '0.17';
 
 use strict;
 
@@ -85,16 +85,17 @@ value to the C<_allow_empty> option:
 
 =cut
 
-my ($InputEncoding, $OutputEncoding, $DoEncoding);
+my ( $InputEncoding, $OutputEncoding, $DoEncoding );
 
-sub input_encoding  { $InputEncoding }
-sub output_encoding { $OutputEncoding }
+sub input_encoding  {$InputEncoding}
+sub output_encoding {$OutputEncoding}
 
 sub parse {
     my $self = shift;
-    my (%var, $key, @ret);
+    my ( %var, $key, @ret );
     my @metadata;
     my @comments;
+    my @fuzzy;
 
     $InputEncoding = $OutputEncoding = $DoEncoding = undef;
 
@@ -102,63 +103,69 @@ sub parse {
     Carp::cluck "Undefined source called\n" unless defined $_[0];
 
     # Check for magic string of MO files
-    return parse_mo(join('', @_))
-      if ($_[0] =~ /^\x95\x04\x12\xde/ or $_[0] =~ /^\xde\x12\x04\x95/);
+    return parse_mo( join( '', @_ ) )
+        if ( $_[0] =~ /^\x95\x04\x12\xde/ or $_[0] =~ /^\xde\x12\x04\x95/ );
 
     local $^W;    # no 'uninitialized' warnings, please.
 
     require Locale::Maketext::Lexicon;
-    my $UseFuzzy   = Locale::Maketext::Lexicon::option('use_fuzzy');
+    my $KeepFuzzy = Locale::Maketext::Lexicon::option('keep_fuzzy');
+    my $UseFuzzy  = $KeepFuzzy
+        || Locale::Maketext::Lexicon::option('use_fuzzy');
     my $AllowEmpty = Locale::Maketext::Lexicon::option('allow_empty');
     my $process    = sub {
-        if (length($var{msgstr}) and ($UseFuzzy or !$var{fuzzy})) {
-            push @ret, (map transform($_), @var{ 'msgid', 'msgstr' });
+        if ( length( $var{msgstr} ) and ( $UseFuzzy or !$var{fuzzy} ) ) {
+            push @ret, ( map transform($_), @var{ 'msgid', 'msgstr' } );
         }
         elsif ($AllowEmpty) {
-            push @ret, (transform($var{msgid}), '');
+            push @ret, ( transform( $var{msgid} ), '' );
         }
-        if ($var{msgid} eq '') {
-            push @metadata, parse_metadata($var{msgstr});
-        } else {
-            push  @comments, transform($var{msgid}), $var{msgcomment};
+        if ( $var{msgid} eq '' ) {
+            push @metadata, parse_metadata( $var{msgstr} );
+        }
+        else {
+            push @comments, $var{msgid}, $var{msgcomment};
+        }
+        if ( $KeepFuzzy && $var{fuzzy} ) {
+            push @fuzzy, $var{msgid}, 1;
         }
         %var = ();
     };
 
     # Parse PO files
     foreach (@_) {
-        s/[\015\012]*\z//;    # fix CRLF issues
+        s/[\015\012]*\z//;                  # fix CRLF issues
 
         /^(msgid|msgstr) +"(.*)" *$/
-          ? do {              # leading strings
+            ? do {                          # leading strings
             $var{$1} = $2;
             $key = $1;
-          }
-          :
+            }
+            :
 
-          /^"(.*)" *$/
-          ? do {              # continued strings
+            /^"(.*)" *$/
+            ? do {                          # continued strings
             $var{$key} .= $1;
-          }
-          :
+            }
+            :
 
-          /^# (.*)$/
-          ? do {              # user comments
-              $var{msgcomment} .= $1 . "\n";
-          }
-          :
+            /^# (.*)$/
+            ? do {                          # user comments
+            $var{msgcomment} .= $1 . "\n";
+            }
+            :
 
-          /^#, +(.*) *$/
-          ? do {              # control variables
-            $var{$_} = 1 for split(/,\s+/, $1);
-          }
-          :
+            /^#, +(.*) *$/
+            ? do {                          # control variables
+            $var{$_} = 1 for split( /,\s+/, $1 );
+            }
+            :
 
-          /^ *$/ && %var
-          ? do {              # interpolate string escapes
+            /^ *$/ && %var
+            ? do {                          # interpolate string escapes
             $process->($_);
-          }
-          : ();
+            }
+            : ();
 
     }
 
@@ -166,65 +173,65 @@ sub parse {
     $process->() if keys %var != 0;
 
     push @ret, map { transform($_) } @var{ 'msgid', 'msgstr' }
-      if length $var{msgstr};
-    push @metadata, parse_metadata($var{msgstr})
-      if $var{msgid} eq '';
+        if length $var{msgstr};
+    push @metadata, parse_metadata( $var{msgstr} )
+        if $var{msgid} eq '';
 
     return wantarray
-        ? ( { @metadata, @ret }, { @comments } )
-        : ( { @metadata, @ret } )
-        ;
+        ? ( { @metadata, @ret }, {@comments}, {@fuzzy} )
+        : ( { @metadata, @ret } );
 
 }
 
 sub parse_metadata {
     return map {
-            (/^([^\x00-\x1f\x80-\xff :=]+):\s*(.*)$/)
-          ? ($1 eq 'Content-Type')
-              ? do {
-                  my $enc = $2;
-                  if ($enc =~ /\bcharset=\s*([-\w]+)/i) {
-                      $InputEncoding = $1 || '';
-                      $OutputEncoding = Locale::Maketext::Lexicon::encoding()
-                        || '';
-                      $InputEncoding = 'utf8' if $InputEncoding =~ /^utf-?8$/i;
-                      $OutputEncoding = 'utf8'
-                        if $OutputEncoding =~ /^utf-?8$/i;
-                      if (
-                          Locale::Maketext::Lexicon::option('decode')
-                          and ( !$OutputEncoding
-                              or $InputEncoding ne $OutputEncoding)
-                        )
-                      {
-                          require Encode::compat if $] < 5.007001;
-                          require Encode;
-                          $DoEncoding = 1;
-                      }
-                  }
-                  ("__Content-Type", $enc);
-              }
-              : ("__$1", $2)
-          : ();
-    } split(/\r*\n+\r*/, transform(pop));
+              (/^([^\x00-\x1f\x80-\xff :=]+):\s*(.*)$/)
+            ? ( $1 eq 'Content-Type' )
+                ? do {
+                    my $enc = $2;
+                    if ( $enc =~ /\bcharset=\s*([-\w]+)/i ) {
+                        $InputEncoding = $1 || '';
+                        $OutputEncoding
+                            = Locale::Maketext::Lexicon::encoding()
+                            || '';
+                        $InputEncoding = 'utf8'
+                            if $InputEncoding =~ /^utf-?8$/i;
+                        $OutputEncoding = 'utf8'
+                            if $OutputEncoding =~ /^utf-?8$/i;
+                        if ( Locale::Maketext::Lexicon::option('decode')
+                             and (   !$OutputEncoding
+                                   or $InputEncoding ne $OutputEncoding )
+                            )
+                        {
+                            require Encode::compat if $] < 5.007001;
+                            require Encode;
+                            $DoEncoding = 1;
+                        }
+                    }
+                    ( "__Content-Type", $enc );
+                }
+                : ( "__$1", $2 )
+            : ();
+    } split( /\r*\n+\r*/, transform(pop) );
 }
 
 sub transform {
     my $str = shift;
 
-    if ($DoEncoding and $InputEncoding) {
-        $str =
-          ($InputEncoding eq 'utf8')
-          ? Encode::decode_utf8($str)
-          : Encode::decode($InputEncoding, $str);
+    if ( $DoEncoding and $InputEncoding ) {
+        $str
+            = ( $InputEncoding eq 'utf8' )
+            ? Encode::decode_utf8($str)
+            : Encode::decode( $InputEncoding, $str );
     }
 
     $str =~ s/\\([0x]..|c?.)/qq{"\\$1"}/eeg;
 
-    if ($DoEncoding and $OutputEncoding) {
-        $str =
-          ($OutputEncoding eq 'utf8')
-          ? Encode::encode_utf8($str)
-          : Encode::encode($OutputEncoding, $str);
+    if ( $DoEncoding and $OutputEncoding ) {
+        $str
+            = ( $OutputEncoding eq 'utf8' )
+            ? Encode::encode_utf8($str)
+            : Encode::encode( $OutputEncoding, $str );
     }
 
     return _gettext_to_maketext($str);
@@ -251,57 +258,57 @@ sub _gettext_to_maketext {
 }
 
 sub _unescape {
-    join(',',
-        map { /\A(\s*)%([1-9]\d*|\*)(\s*)\z/ ? "$1_$2$3" : $_ }
-          split(/,/, $_[0]));
+    join( ',',
+          map { /\A(\s*)%([1-9]\d*|\*)(\s*)\z/ ? "$1_$2$3" : $_ }
+              split( /,/, $_[0] ) );
 }
 
 # This subroutine was derived from Locale::Maketext::Gettext::readmo()
 # under the Perl License; the original author is Yi Ma Mao (IMACAT).
 sub parse_mo {
     my $content = shift;
-    my $tmpl = (substr($content, 0, 4) eq "\xde\x12\x04\x95") ? 'V' : 'N';
+    my $tmpl = ( substr( $content, 0, 4 ) eq "\xde\x12\x04\x95" ) ? 'V' : 'N';
 
     # Check the MO format revision number
     # There is only one revision now: revision 0.
-    return if unpack($tmpl, substr($content, 4, 4)) > 0;
+    return if unpack( $tmpl, substr( $content, 4, 4 ) ) > 0;
 
-    my ($num, $offo, $offt);
+    my ( $num, $offo, $offt );
 
     # Number of strings
-    $num = unpack $tmpl, substr($content, 8, 4);
+    $num = unpack $tmpl, substr( $content, 8, 4 );
 
     # Offset to the beginning of the original strings
-    $offo = unpack $tmpl, substr($content, 12, 4);
+    $offo = unpack $tmpl, substr( $content, 12, 4 );
 
     # Offset to the beginning of the translated strings
-    $offt = unpack $tmpl, substr($content, 16, 4);
+    $offt = unpack $tmpl, substr( $content, 16, 4 );
 
-    my (@metadata, @ret);
-    for (0 .. $num - 1) {
-        my ($len, $off, $stro, $strt);
+    my ( @metadata, @ret );
+    for ( 0 .. $num - 1 ) {
+        my ( $len, $off, $stro, $strt );
 
         # The first word is the length of the string
-        $len = unpack $tmpl, substr($content, $offo + $_ * 8, 4);
+        $len = unpack $tmpl, substr( $content, $offo + $_ * 8, 4 );
 
         # The second word is the offset of the string
-        $off = unpack $tmpl, substr($content, $offo + $_ * 8 + 4, 4);
+        $off = unpack $tmpl, substr( $content, $offo + $_ * 8 + 4, 4 );
 
         # Original string
-        $stro = substr($content, $off, $len);
+        $stro = substr( $content, $off, $len );
 
         # The first word is the length of the string
-        $len = unpack $tmpl, substr($content, $offt + $_ * 8, 4);
+        $len = unpack $tmpl, substr( $content, $offt + $_ * 8, 4 );
 
         # The second word is the offset of the string
-        $off = unpack $tmpl, substr($content, $offt + $_ * 8 + 4, 4);
+        $off = unpack $tmpl, substr( $content, $offt + $_ * 8 + 4, 4 );
 
         # Translated string
-        $strt = substr($content, $off, $len);
+        $strt = substr( $content, $off, $len );
 
         # Hash it
         push @metadata, parse_metadata($strt) if $stro eq '';
-        push @ret, (map transform($_), $stro, $strt) if length $strt;
+        push @ret, ( map transform($_), $stro, $strt ) if length $strt;
     }
 
     return { @metadata, @ret };

@@ -1,3 +1,19 @@
+[Changes for 0.76 - 2008-12-14]
+
+ * Locale::Maketext::Extract / Locale::Maketext::Lexicon::Gettext
+   - Roundtripping of fuzzy comments now works. If a translation is marked
+     by the translator as fuzzy, then it should remain so when re-extracted
+   - Added tests for roundtripping of fuzzy, and for format markers
+
+ * Locale::Maketext::Lexicon
+   - Fixed bug http://rt.cpan.org/Public/Bug/Display.html?id=14999
+     # relative paths to lang files fail
+   - added tests to prove it
+
+ * Locale::Maketext::Extract::Plugin::TT
+   - changed the line string to contain only the start line, and not the range
+     as this was not consistent with the gettext spec
+
 [Changes for 0.75 - 2008-11-24]
 
  * Locale::Maketext::Extract / Locale::Maketext::Extract::Run

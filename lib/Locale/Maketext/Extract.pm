@@ -1,7 +1,8 @@
 package Locale::Maketext::Extract;
-$Locale::Maketext::Extract::VERSION = '0.33';
+$Locale::Maketext::Extract::VERSION = '0.34';
 
 use strict;
+use Locale::Maketext::Lexicon();
 
 =head1 NAME
 
@@ -256,6 +257,7 @@ sub new {
     my $plugins = delete $params{plugins}
         || { map { $_ => '*' } keys %Known_Plugins };
 
+    Locale::Maketext::Lexicon::set_option( 'keep_fuzzy' => 1 );
     my $self = bless( {  header           => '',
                          entries          => {},
                          compiled_entries => {},
@@ -334,6 +336,7 @@ sub clear {
     $_[0]->set_header;
     $_[0]->set_lexicon;
     $_[0]->set_comments;
+    $_[0]->set_fuzzy;
     $_[0]->set_entries;
     $_[0]->set_compiled_entries;
 }
@@ -364,16 +367,18 @@ sub read_po {
     require Locale::Maketext::Lexicon::Gettext;
     my $lexicon  = {};
     my $comments = {};
+    my $fuzzy    = {};
     $self->set_compiled_entries( {} );
 
     if ( defined($_) ) {
-        ( $lexicon, $comments )
+        ( $lexicon, $comments, $fuzzy )
             = Locale::Maketext::Lexicon::Gettext->parse( $_, <LEXICON> );
     }
 
     # Internally the lexicon is in gettext format already.
     $self->set_lexicon( { map _maketext_to_gettext($_), %$lexicon } );
     $self->set_comments($comments);
+    $self->set_fuzzy($fuzzy);
 
     close LEXICON;
 }
@@ -385,8 +390,16 @@ sub msg_comment {
     return $comment;
 }
 
+sub msg_fuzzy {
+    return $_[0]->{fuzzy}{$_[1]} ? ', fuzzy' : '';
+}
+
 sub set_comments {
     $_[0]->{comments} = $_[1];
+}
+
+sub set_fuzzy {
+    $_[0]->{fuzzy} = $_[1];
 }
 
 =head3 method write_po ($file, $add_format_marker?)
@@ -412,7 +425,9 @@ sub write_po {
         }
         print LEXICON $self->msg_variables($msgid);
         print LEXICON $self->msg_positions($msgid);
-        print LEXICON $self->msg_format($msgid) if $add_format_marker;
+        my $flags = $self->msg_fuzzy($msgid);
+        $flags.= $self->msg_format($msgid) if $add_format_marker;
+        print LEXICON "#$flags\n" if $flags;
         print LEXICON $self->msg_out($msgid);
     }
 
@@ -594,7 +609,7 @@ sub msg_variables {
 
 sub msg_format {
     my ( $self, $msgid ) = @_;
-    return "#, perl-maketext-format\n"
+    return ", perl-maketext-format"
         if $msgid =~ /%(?:[1-9]\d*|\w+\([^\)]*\))/;
     return '';
 }
