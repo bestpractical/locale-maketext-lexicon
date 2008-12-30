@@ -127,7 +127,34 @@ on by default - you can turn them off with C<-now>
 
 =back
 
-Multiple plugins can be specified on the command line
+Multiple plugins can be specified on the command line.
+
+=head3 Available plugins:
+
+
+=over 4
+
+=item C<perl>    : L<Locale::Maketext::Extract::Plugin::Perl>
+
+For a slightly more accurate but much slower Perl parser, you can use
+the PPI plugin. This does not have a short name, but must be specified in
+full, eg:
+
+    xgettext.pl -P Locale::Maketext::Extract::Plugin::PPI
+
+=item C<tt2>     : L<Locale::Maketext::Extract::Plugin::TT2>
+
+=item C<yaml>    : L<Locale::Maketext::Extract::Plugin::YAML>
+
+=item C<formfu>  : L<Locale::Maketext::Extract::Plugin::FormFu>
+
+=item C<mason>   : L<Locale::Maketext::Extract::Plugin::Mason>
+
+=item C<text>    : L<Locale::Maketext::Extract::Plugin::TextTemplate>
+
+=item C<generic> : L<Locale::Maketext::Extract::Plugin::Generic>
+
+=back
 
 =head2 Warnings:
 
@@ -169,8 +196,6 @@ extracted strings, the line where they were found, and any variables.
 
 =back
 
-=cut
-
 =head1 SEE ALSO
 
 =over 4
@@ -181,19 +206,21 @@ extracted strings, the line where they were found, and any variables.
 
 =item L<Locale::Maketext>
 
-=item L<Locale::Maketext::Plugin::Perl>
+=item L<Locale::Maketext::Extract::Plugin::Perl>
 
-=item L<Locale::Maketext::Plugin::TT2>
+=item L<Locale::Maketext::Extract::Plugin::PPI>
 
-=item L<Locale::Maketext::Plugin::YAML>
+=item L<Locale::Maketext::Extract::Plugin::TT2>
 
-=item L<Locale::Maketext::Plugin::FormFu>
+=item L<Locale::Maketext::Extract::Plugin::YAML>
 
-=item L<Locale::Maketext::Plugin::Mason>
+=item L<Locale::Maketext::Extract::Plugin::FormFu>
 
-=item L<Locale::Maketext::Plugin::TextTemplate>
+=item L<Locale::Maketext::Extract::Plugin::Mason>
 
-=item L<Locale::Maketext::Plugin::Generic>
+=item L<Locale::Maketext::Extract::Plugin::TextTemplate>
+
+=item L<Locale::Maketext::Extract::Plugin::Generic>
 
 =back
 

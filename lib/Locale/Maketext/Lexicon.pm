@@ -1,5 +1,5 @@
 package Locale::Maketext::Lexicon;
-$Locale::Maketext::Lexicon::VERSION = '0.76';
+$Locale::Maketext::Lexicon::VERSION = '0.77';
 
 use 5.004;
 use strict;
@@ -10,8 +10,8 @@ Locale::Maketext::Lexicon - Use other catalog formats in Maketext
 
 =head1 VERSION
 
-This document describes version 0.71 of Locale::Maketext::Lexicon,
-released October 5, 2008.
+This document describes version 0.77 of Locale::Maketext::Lexicon,
+released December 29, 2008.
 
 =head1 SYNOPSIS
 
@@ -74,8 +74,8 @@ This module provides lexicon-handling modules to read from other
 localization formats, such as I<Gettext>, I<Msgcat>, and so on.
 
 If you are unfamiliar with the concept of lexicon modules, please
-consult L<Locale::Maketext> and L<http://www.autrijus.org/webl10n/>
-first.
+consult L<Locale::Maketext> and the C<webl10n> HTML files in the C<docs/>
+directory of this module.
 
 A command-line utility L<xgettext.pl> is also installed with this
 module, for extracting translatable strings from source files.

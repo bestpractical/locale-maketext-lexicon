@@ -30,15 +30,39 @@ Valid formats are:
 
 =over 4
 
-=item key: _"string"
+=item *
 
-=item key: _'string'
+    key: _"string"
 
-=item key: _'string with embedded 'quotes''
+=item *
+
+    key: _'string'
+
+=item *
+
+    key: _'string with embedded 'quotes''
+
+=item *
+
+    key: |-
+         _'my folded
+         string
+         to translate'
+
+Note, the left hand side of the folded string must line up with the C<_>,
+otherwise YAML adds spaces at the beginning of each line.
+
+=item *
+
+    key: |-
+         _'my block
+         string
+         to translate
+         '
+Note, you must use the trailing C<-> so that YAMl doesn't add a carriage
+return after your final quote.
 
 =back
-
-You cannot use block or folded strings with this plugin.
 
 =head1 KNOWN FILE TYPES
 
@@ -63,7 +87,7 @@ of errors as L<YAML::Syck>. However, because it is pure Perl, it is easy
 to hook into.
 
 I have seen it enter endless loops, so if xgettext.pl hangs, try running it
-again with --verbose --verbose (twice) enabled, so that you can see if
+again with C<--verbose --verbose> (twice) enabled, so that you can see if
 the fault lies with YAML.  If it does, either correct the YAML source file,
 or use the file_types to exclude that file.
 
@@ -116,28 +140,41 @@ sub check_scalar {
 
 sub _parse_node {
     my $self = shift;
+    my $line = $self->{_start_line}||=length($self->preface) ? $self->line - 1 : $self->line;
     my $node = $self->SUPER::_parse_node(@_);
-    return $self->check_scalar($node,$self->line-1);
+    $self->{start_line} = 0;
+    return $self->check_scalar($node,$line);
 }
 
 sub _parse_inline_seq {
     my $self = shift;
+    my $line = $self->{_start_line}||=$self->line;
     my $node = $self->SUPER::_parse_inline_seq(@_);
-    my $line = $self->line;
     foreach (@$node) {
         $self->check_scalar( $_, $line );
     }
+    $self->{start_line} = 0;
     return $node;
 }
 
 sub _parse_inline_mapping {
     my $self = shift;
+    my $line = $self->{_start_line}||=$self->line;
     my $node = $self->SUPER::_parse_inline_mapping(@_);
-    my $line = $self->line;
     foreach ( values %$node ) {
         $self->check_scalar( $_, $line );
     }
+    $self->{start_line} = 0;
     return $node;
+}
+
+#===================================
+sub _parse_next_line {
+#===================================
+    my $self = shift;
+    $self->{_start_line}  = $self->line
+        if $_[0] == YAML::Loader::COLLECTION;
+    $self->SUPER::_parse_next_line(@_);
 }
 
 sub found {
@@ -154,23 +191,23 @@ sub found {
 for extracting translatable strings from common template
 systems and perl source files.
 
+=item L<YAML>
+
 =item L<Locale::Maketext::Lexicon>
 
-=item L<Locale::Maketext::Plugin::Base>
+=item L<Locale::Maketext::Extract::Plugin::Base>
 
-=item L<Locale::Maketext::Plugin::FormFu>
+=item L<Locale::Maketext::Extract::Plugin::FormFu>
 
-=item L<Locale::Maketext::Plugin::Perl>
+=item L<Locale::Maketext::Extract::Plugin::Perl>
 
-=item L<Locale::Maketext::Plugin::TT2>
+=item L<Locale::Maketext::Extract::Plugin::TT2>
 
-=item L<Locale::Maketext::Plugin::Mason>
+=item L<Locale::Maketext::Extract::Plugin::Mason>
 
-=item L<Locale::Maketext::Plugin::TextTemplate>
+=item L<Locale::Maketext::Extract::Plugin::TextTemplate>
 
-=item L<Locale::Maketext::Plugin::Generic>
-
-=item L<Template::Alloy>
+=item L<Locale::Maketext::Extract::Plugin::Generic>
 
 =back
 

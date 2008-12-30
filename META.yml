@@ -18,6 +18,7 @@ no_index:
 recommends:
   HTML::Parser: 3.56
   Lingua::EN::Sentence: 0.25
+  PPI: 1.203
   Template: 2.20
   Template::Constants: 2.75
   YAML: 0.66
@@ -25,4 +26,4 @@ recommends:
 requires:
   Locale::Maketext: 0.01
   perl: 5.005
-version: 0.76
+version: 0.77

@@ -1,3 +1,28 @@
+[Changes for 0.77 - 2008-12-29]
+
+ * Locale::Maketext::Extract::Plugin::FormFu
+    - Rewrote the FormFu plugin completely to use the YAML.pm parser.
+      Previously, this plugin was completely broken.
+    - Resolves bugs:
+       - http://rt.cpan.org/Ticket/Display.html?id=42000
+         # Locale::Maketext::Extract::Plugin::FormFu broken
+       - http://rt.cpan.org/Ticket/Display.html?id=39292
+         # Parsing formfu config
+
+ * Locale::Maketext::Extract::Plugin::YAML
+    - Improved the accuracy of the line numbers.
+    - Added documentation and tests for using folded and block scalars.
+
+ * Locale::Maketext::Extract::Plugin::PPI
+    - Added a PPI based Perl plugin - more accurate than the Perl plugin,
+      but much slower.
+    - Not enabled by default
+    - moved the Perl extraction tests into t/51-perlextract.t
+    - Resolves bug: http://rt.cpan.org/Ticket/Display.html?id=14701
+      # xgettext doesn't handle interpolating functions
+
+ Also, corrected the POD to use the correct names for the plugins.
+
 [Changes for 0.76 - 2008-12-14]
 
  * Locale::Maketext::Extract / Locale::Maketext::Lexicon::Gettext
@@ -10,7 +35,7 @@
      # relative paths to lang files fail
    - added tests to prove it
 
- * Locale::Maketext::Extract::Plugin::TT
+ * Locale::Maketext::Extract::Plugin::TT2
    - changed the line string to contain only the start line, and not the range
      as this was not consistent with the gettext spec
 

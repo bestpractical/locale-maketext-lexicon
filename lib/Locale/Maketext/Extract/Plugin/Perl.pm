@@ -22,6 +22,10 @@ Locale::Maketext::Extract::Plugin::Perl - Perl format parser
 Extracts strings to localise (including HEREDOCS and
 concatenated strings) from Perl code.
 
+This Perl parser is very fast and very good, but not perfect - it does make
+mistakes. The PPI parser (L<Locale::Maketext::Extract::Plugin::PPI>) is more
+accurate, but a lot slower, and so is not enabled by default.
+
 =head1 SHORT PLUGIN NAME
 
     perl
@@ -212,19 +216,21 @@ systems and perl source files.
 
 =item L<Locale::Maketext::Lexicon>
 
-=item L<Locale::Maketext::Plugin::Base>
+=item L<Locale::Maketext::Extract::Plugin::Base>
 
-=item L<Locale::Maketext::Plugin::FormFu>
+=item L<Locale::Maketext::Extract::Plugin::PPI>
 
-=item L<Locale::Maketext::Plugin::TT2>
+=item L<Locale::Maketext::Extract::Plugin::FormFu>
 
-=item L<Locale::Maketext::Plugin::YAML>
+=item L<Locale::Maketext::Extract::Plugin::TT2>
 
-=item L<Locale::Maketext::Plugin::Mason>
+=item L<Locale::Maketext::Extract::Plugin::YAML>
 
-=item L<Locale::Maketext::Plugin::TextTemplate>
+=item L<Locale::Maketext::Extract::Plugin::Mason>
 
-=item L<Locale::Maketext::Plugin::Generic>
+=item L<Locale::Maketext::Extract::Plugin::TextTemplate>
+
+=item L<Locale::Maketext::Extract::Plugin::Generic>
 
 =back
 

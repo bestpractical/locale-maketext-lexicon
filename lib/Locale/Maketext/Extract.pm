@@ -1,5 +1,5 @@
 package Locale::Maketext::Extract;
-$Locale::Maketext::Extract::VERSION = '0.34';
+$Locale::Maketext::Extract::VERSION = '0.35';
 
 use strict;
 use Locale::Maketext::Lexicon();
@@ -79,6 +79,10 @@ Following formats of input files are supported:
 
 Valid localization function names are: C<translate>, C<maketext>,
 C<gettext>, C<loc>, C<x>, C<_> and C<__>.
+
+For a slightly more accurate, but much slower Perl parser, you can  use the PPI
+plugin. This does not have a short name (like C<perl>), but must be specified
+in full.
 
 =item HTML::Mason  (plugin: mason)
 
@@ -195,23 +199,27 @@ plugins, and overrides the file types specified in each plugin
 
 =over 4
 
-=item C<perl>    : L<Locale::Maketext::Plugin::Perl>
+=item C<perl>    : L<Locale::Maketext::Extract::Plugin::Perl>
 
-=item C<tt2>     : L<Locale::Maketext::Plugin::TT2>
+For a slightly more accurate but much slower Perl parser, you can use
+the PPI plugin. This does not have a short name, but must be specified in
+full, ie: L<Locale::Maketext::Extract::Plugin::PPI>
 
-=item C<yaml>    : L<Locale::Maketext::Plugin::YAML>
+=item C<tt2>     : L<Locale::Maketext::Extract::Plugin::TT2>
 
-=item C<formfu>  : L<Locale::Maketext::Plugin::FormFu>
+=item C<yaml>    : L<Locale::Maketext::Extract::Plugin::YAML>
 
-=item C<mason>   : L<Locale::Maketext::Plugin::Mason>
+=item C<formfu>  : L<Locale::Maketext::Extract::Plugin::FormFu>
 
-=item C<text>    : L<Locale::Maketext::Plugin::TextTemplate>
+=item C<mason>   : L<Locale::Maketext::Extract::Plugin::Mason>
 
-=item C<generic> : L<Locale::Maketext::Plugin::Generic>
+=item C<text>    : L<Locale::Maketext::Extract::Plugin::TextTemplate>
+
+=item C<generic> : L<Locale::Maketext::Extract::Plugin::Generic>
 
 =back
 
-Also, see L<Locale::Maketext::Plugin::Base> for details of how to
+Also, see L<Locale::Maketext::Extract::Plugin::Base> for details of how to
 write your own plugin.
 
 =head2 Warnings

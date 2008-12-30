@@ -392,19 +392,19 @@ systems and perl source files.
 
 =item L<Locale::Maketext::Lexicon>
 
-=item L<Locale::Maketext::Plugin::Base>
+=item L<Locale::Maketext::Extract::Plugin::Base>
 
-=item L<Locale::Maketext::Plugin::FormFu>
+=item L<Locale::Maketext::Extract::Plugin::FormFu>
 
-=item L<Locale::Maketext::Plugin::Perl>
+=item L<Locale::Maketext::Extract::Plugin::Perl>
 
-=item L<Locale::Maketext::Plugin::YAML>
+=item L<Locale::Maketext::Extract::Plugin::YAML>
 
-=item L<Locale::Maketext::Plugin::Mason>
+=item L<Locale::Maketext::Extract::Plugin::Mason>
 
-=item L<Locale::Maketext::Plugin::TextTemplate>
+=item L<Locale::Maketext::Extract::Plugin::TextTemplate>
 
-=item L<Locale::Maketext::Plugin::Generic>
+=item L<Locale::Maketext::Extract::Plugin::Generic>
 
 =item L<Template::Toolkit>
 
